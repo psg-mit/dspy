@@ -136,7 +136,7 @@ class ParallelExecutor:
                     total=len(data),
                     dynamic_ncols=True,
                     disable=self.disable_progress_bar,
-                    file=sys.stdout,
+                    file=sys.stderr,
                 )
 
                 def all_done():
