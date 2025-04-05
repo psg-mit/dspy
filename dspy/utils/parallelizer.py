@@ -58,9 +58,9 @@ class ParallelExecutor:
                     if self.error_count >= self.max_errors:
                         self.cancel_jobs.set()
                 if self.provide_traceback:
-                    logger.error(f"Error for {item}: {e}\n{traceback.format_exc()}")
+                    logger.error(f"Error for {item.program_name}: {e}\n{traceback.format_exc()}")
                 else:
-                    logger.error(f"Error for {item}: {e}. " "Set `provide_traceback=True` for traceback.")
+                    logger.error(f"Error for {item.program_name}: {e}. " "Set `provide_traceback=True` for traceback.")
                 return None
 
         return safe_func
