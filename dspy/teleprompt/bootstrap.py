@@ -191,8 +191,11 @@ class BootstrapFewShot(Teleprompter):
                         predictor_cache[name] = predictor.demos
                         predictor.demos = [x for x in predictor.demos if x != example]
 
+                    print("Example: ", example.program_name)
                     prediction = teacher(**example.inputs())
-                    trace = dspy.settings.trace
+                    # trace = dspy.settings.trace
+                    trace = prediction.trajectory
+                    # print(">>> Trace1:", trace)
 
                     for name, predictor in teacher.named_predictors():
                         predictor.demos = predictor_cache[name]
@@ -212,30 +215,54 @@ class BootstrapFewShot(Teleprompter):
                 current_error_count = self.error_count
             if current_error_count >= self.max_errors:
                 raise e
-            logger.error(f"Failed to run or to evaluate example {example} with {self.metric} due to {e}.")
+            try:
+                e_str = str(e)
+            except:
+                e_str = "Unknown error"
+            logger.error(
+                f"Failed to run or to evaluate example {example.program_name} with {self.metric} due to {e_str}."
+            )
 
         if success:
-            for step in trace:
-                predictor, inputs, outputs = step
-                demo = dspy.Example(augmented=True, **inputs, **outputs)
+            # # NOTE: this is specifically for nightjar training
+            # # print(">>> Trace2:", trace)
+            # demo = dspy.Example(augmented=True, instruction=example.instruction, trajectory=trace)
+            # # predictor_name = self.predictor2name[id(predictor)]
+            # predictor_name = "next"
+            # name2traces[predictor_name] = name2traces.get(predictor_name, [])
+            # name2traces[predictor_name].append(demo)
 
-                try:
-                    predictor_name = self.predictor2name[id(predictor)]
-                except KeyError:
-                    continue  # FIXME: !
-
-                    # # TODO: Look closer into this. It's a bit tricky to reproduce.
-                    # print(f"Failed to find predictor {predictor} in {self.predictor2name}.")
-                    # print(
-                    #     "Are you doing this in a notebook (Jupyter)? This might be caused by redefining values by rerunning cells.",
-                    # )
-                    # print("Try restarting the notebook, or open an issue.")
-                    # raise KeyError(
-                    #     f"Failed to find predictor {id(predictor)} {predictor} in {self.predictor2name}.",
-                    # ) from e
-
+            for i in range(len(trace)):
+                demo = dspy.Example(
+                    augmented=True,
+                    instruction=example.instruction,
+                    trajectory=trace[:i],
+                    next_fn=trace[i]["tool_call"],
+                )
+                # predictor_name = self.predictor2name[id(predictor)]
+                predictor_name = "next"
                 name2traces[predictor_name] = name2traces.get(predictor_name, [])
                 name2traces[predictor_name].append(demo)
+
+                # demo = dspy.Example(augmented=True, **inputs, **outputs)
+
+            #     try:
+            #         predictor_name = self.predictor2name[id(predictor)]
+            #     except KeyError:
+            #         continue  # FIXME: !
+
+            #         # # TODO: Look closer into this. It's a bit tricky to reproduce.
+            #         # print(f"Failed to find predictor {predictor} in {self.predictor2name}.")
+            #         # print(
+            #         #     "Are you doing this in a notebook (Jupyter)? This might be caused by redefining values by rerunning cells.",
+            #         # )
+            #         # print("Try restarting the notebook, or open an issue.")
+            #         # raise KeyError(
+            #         #     f"Failed to find predictor {id(predictor)} {predictor} in {self.predictor2name}.",
+            #         # ) from e
+
+            #     name2traces[predictor_name] = name2traces.get(predictor_name, [])
+            #     name2traces[predictor_name].append(demo)
 
             # Update the traces
             for name, demos in name2traces.items():

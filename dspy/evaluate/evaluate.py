@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     import pandas as pd
 
 import tqdm
-
+from copy import deepcopy
 import dspy
 from dspy.utils.callback import with_callbacks
 from dspy.utils.parallelizer import ParallelExecutor
@@ -44,9 +44,10 @@ logger = logging.getLogger(__name__)
 class Evaluate:
     """DSPy Evaluate class.
 
-    This class is used to evaluate the performance of a DSPy program. Users need to provide a evaluation dataset and 
+    This class is used to evaluate the performance of a DSPy program. Users need to provide a evaluation dataset and
     a metric function in order to use this class. This class supports parallel evaluation on the provided dataset.
     """
+
     def __init__(
         self,
         *,
@@ -68,8 +69,8 @@ class Evaluate:
             metric (Callable): The metric function to use for evaluation.
             num_threads (int): The number of threads to use for parallel evaluation.
             display_progress (bool): Whether to display progress during evaluation.
-            display_table (Union[bool, int]): Whether to display the evaluation results in a table. 
-                If a number is passed, the evaluation results will be truncated to that number before displayed. 
+            display_table (Union[bool, int]): Whether to display the evaluation results in a table.
+                If a number is passed, the evaluation results will be truncated to that number before displayed.
             max_errors (int): The maximum number of errors to allow before stopping evaluation.
             return_all_scores (bool): Whether to return scores for every data record in `devset`.
             return_outputs (bool): Whether to return the dspy program's outputs for every data in `devset`.
@@ -119,15 +120,15 @@ class Evaluate:
 
         Returns:
             The evaluation results are returned in different formats based on the flags:
-            
+
             - Base return: A float percentage score (e.g., 67.30) representing overall performance
-            
+
             - With `return_all_scores=True`:
-                Returns (overall_score, individual_scores) where individual_scores is a list of 
+                Returns (overall_score, individual_scores) where individual_scores is a list of
                 float scores for each example in devset
-            
+
             - With `return_outputs=True`:
-                Returns (overall_score, result_triples) where result_triples is a list of 
+                Returns (overall_score, result_triples) where result_triples is a list of
                 (example, prediction, score) tuples for each example in devset
 
             - With both flags=True:
@@ -147,27 +148,45 @@ class Evaluate:
 
         tqdm.tqdm._instances.clear()
 
-        executor = ParallelExecutor(
-            num_threads=num_threads,
-            disable_progress_bar=not display_progress,
-            max_errors=self.max_errors,
-            provide_traceback=self.provide_traceback,
-            compare_results=True,
-        )
+        # executor = ParallelExecutor(
+        #     num_threads=num_threads,
+        #     disable_progress_bar=not display_progress,
+        #     max_errors=self.max_errors,
+        #     provide_traceback=self.provide_traceback,
+        #     compare_results=True,
+        # )
 
-        def process_item(example):
-            prediction = program(**example.inputs())
-            score = metric(example, prediction)
+        # def process_item(example):
+        #     program_copy = deepcopy(program)
+        #     prediction = program_copy(**example.inputs())
+        #     score = metric(example, prediction)
 
+        #     # Increment assert and suggest failures to program's attributes
+        #     if hasattr(program, "_assert_failures"):
+        #         program._assert_failures += dspy.settings.get("assert_failures")
+        #     if hasattr(program, "_suggest_failures"):
+        #         program._suggest_failures += dspy.settings.get("suggest_failures")
+
+        #     return prediction, score
+
+        # results = executor.execute(process_item, devset)
+        results = []
+        for example in devset:
+            try:
+                prediction = program(**example.inputs())
+                score = metric(example, prediction)
+            except Exception as e:
+                print(example.program_name, ">> Error:", e)
+                results.append(None)
+                continue
             # Increment assert and suggest failures to program's attributes
             if hasattr(program, "_assert_failures"):
                 program._assert_failures += dspy.settings.get("assert_failures")
             if hasattr(program, "_suggest_failures"):
                 program._suggest_failures += dspy.settings.get("suggest_failures")
 
-            return prediction, score
+            results.append((prediction, score))
 
-        results = executor.execute(process_item, devset)
         assert len(devset) == len(results)
 
         results = [((dspy.Prediction(), self.failure_score) if r is None else r) for r in results]
@@ -192,9 +211,10 @@ class Evaluate:
             return round(100 * ncorrect / ntotal, 2), results
 
         return round(100 * ncorrect / ntotal, 2)
-    
 
-    def _construct_result_table(self, results: list[Tuple[dspy.Example, dspy.Example, Any]], metric_name: str) -> "pd.DataFrame":
+    def _construct_result_table(
+        self, results: list[Tuple[dspy.Example, dspy.Example, Any]], metric_name: str
+    ) -> "pd.DataFrame":
         """
         Construct a pandas DataFrame from the specified result list.
         Let's not try to change the name of this method as it may be patched by external tracing tools.
@@ -202,11 +222,12 @@ class Evaluate:
         Args:
             results: The list of results to construct the result DataFrame from.
             metric_name: The name of the metric used for evaluation.
-        
+
         Returns:
             The constructed pandas DataFrame.
         """
         import pandas as pd
+
         data = [
             (
                 merge_dicts(example, prediction) | {"correct": score}
@@ -222,14 +243,13 @@ class Evaluate:
 
         return result_df.rename(columns={"correct": metric_name})
 
-
     def _display_result_table(self, result_df: "pd.DataFrame", display_table: Union[bool, int], metric_name: str):
         """
         Display the specified result DataFrame in a table format.
 
         Args:
             result_df: The result DataFrame to display.
-            display_table: Whether to display the evaluation results in a table. 
+            display_table: Whether to display the evaluation results in a table.
                 If a number is passed, the evaluation results will be truncated to that number before displayed.
             metric_name: The name of the metric used for evaluation.
         """

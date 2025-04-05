@@ -61,7 +61,7 @@ class BootstrapFewShotWithRandomSearch(Teleprompter):
         all_subscores = []
         score_data = []
 
-        for seed in range(-3, self.num_candidate_sets):
+        for seed in range(0, self.num_candidate_sets):
             if (restrict is not None) and (seed not in restrict):
                 continue
 
@@ -72,6 +72,8 @@ class BootstrapFewShotWithRandomSearch(Teleprompter):
                 program = student.reset_copy()
 
             elif seed == -2:
+                if self.max_labeled_demos == 0:
+                    continue
                 # labels only
                 teleprompter = LabeledFewShot(k=self.max_labeled_demos)
                 program = teleprompter.compile(student, trainset=trainset_copy, sample=labeled_sample)
@@ -143,7 +145,9 @@ class BootstrapFewShotWithRandomSearch(Teleprompter):
 
         # To best program, attach all program candidates in decreasing average score
         best_program.candidate_programs = score_data
-        best_program.candidate_programs = sorted(best_program.candidate_programs, key=lambda x: x["score"], reverse=True)
+        best_program.candidate_programs = sorted(
+            best_program.candidate_programs, key=lambda x: x["score"], reverse=True
+        )
 
         print(f"{len(best_program.candidate_programs)} candidate programs found.")
 
