@@ -177,7 +177,10 @@ class Evaluate:
                 score = metric(example, prediction)
             except Exception as e:
                 print(example.program_name, ">> Error:", e)
-                results.append(None)
+                # For nightjar, we want to pass along the error, because nightjar can raise errors
+                prediction.error = e
+                score = metric(example, prediction)
+                results.append((prediction, score))
                 continue
             # Increment assert and suggest failures to program's attributes
             if hasattr(program, "_assert_failures"):
