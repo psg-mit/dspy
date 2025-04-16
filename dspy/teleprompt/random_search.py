@@ -61,7 +61,7 @@ class BootstrapFewShotWithRandomSearch(Teleprompter):
         all_subscores = []
         score_data = []
 
-        for seed in range(0, self.num_candidate_sets):
+        for seed in range(-3, self.num_candidate_sets):
             if (restrict is not None) and (seed not in restrict):
                 continue
 
