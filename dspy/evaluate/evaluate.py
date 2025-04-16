@@ -178,7 +178,7 @@ class Evaluate:
             except Exception as e:
                 print(example.program_name, ">> Error:", e)
                 # For nightjar, we want to pass along the error, because nightjar can raise errors
-                prediction.error = e
+                prediction = dspy.Prediction(outputs=None, trajectory=None, error=e)
                 score = metric(example, prediction)
                 results.append((prediction, score))
                 continue

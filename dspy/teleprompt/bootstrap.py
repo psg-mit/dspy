@@ -192,7 +192,11 @@ class BootstrapFewShot(Teleprompter):
                         predictor.demos = [x for x in predictor.demos if x != example]
 
                     print("Example: ", example.program_name)
-                    prediction = teacher(**example.inputs())
+                    try:
+                        prediction = teacher(**example.inputs())
+                    except Exception as e:
+                        print(">>> Natural Error:", e)
+                        prediction = dspy.Prediction(outputs=None, trajectory=None, error=e)
                     # trace = dspy.settings.trace
                     trace = prediction.trajectory
                     # print(">>> Trace1:", trace)
