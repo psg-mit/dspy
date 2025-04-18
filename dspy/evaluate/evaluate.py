@@ -148,30 +148,17 @@ class Evaluate:
 
         tqdm.tqdm._instances.clear()
 
-        # executor = ParallelExecutor(
-        #     num_threads=num_threads,
-        #     disable_progress_bar=not display_progress,
-        #     max_errors=self.max_errors,
-        #     provide_traceback=self.provide_traceback,
-        #     compare_results=True,
-        # )
+        executor = ParallelExecutor(
+            num_threads=num_threads,
+            disable_progress_bar=not display_progress,
+            max_errors=self.max_errors,
+            provide_traceback=self.provide_traceback,
+            compare_results=True,
+        )
 
-        # def process_item(example):
-        #     program_copy = deepcopy(program)
-        #     prediction = program_copy(**example.inputs())
-        #     score = metric(example, prediction)
-
-        #     # Increment assert and suggest failures to program's attributes
-        #     if hasattr(program, "_assert_failures"):
-        #         program._assert_failures += dspy.settings.get("assert_failures")
-        #     if hasattr(program, "_suggest_failures"):
-        #         program._suggest_failures += dspy.settings.get("suggest_failures")
-
-        #     return prediction, score
-
-        # results = executor.execute(process_item, devset)
-        results = []
-        for example in devset:
+        def process_item(example):
+            # prediction = program(**example.inputs())
+            # score = metric(example, prediction)
             try:
                 prediction = program(**example.inputs())
                 score = metric(example, prediction)
@@ -180,15 +167,35 @@ class Evaluate:
                 # For nightjar, we want to pass along the error, because nightjar can raise errors
                 prediction = dspy.Prediction(outputs=None, trajectory=None, error=e)
                 score = metric(example, prediction)
-                results.append((prediction, score))
-                continue
+
             # Increment assert and suggest failures to program's attributes
             if hasattr(program, "_assert_failures"):
                 program._assert_failures += dspy.settings.get("assert_failures")
             if hasattr(program, "_suggest_failures"):
                 program._suggest_failures += dspy.settings.get("suggest_failures")
 
-            results.append((prediction, score))
+            return prediction, score
+
+        results = executor.execute(process_item, devset)
+        # results = []
+        # for example in devset:
+        #     try:
+        #         prediction = program(**example.inputs())
+        #         score = metric(example, prediction)
+        #     except Exception as e:
+        #         print(example.program_name, ">> Error:", e)
+        #         # For nightjar, we want to pass along the error, because nightjar can raise errors
+        #         prediction = dspy.Prediction(outputs=None, trajectory=None, error=e)
+        #         score = metric(example, prediction)
+        #         results.append((prediction, score))
+        #         continue
+        #     # Increment assert and suggest failures to program's attributes
+        #     if hasattr(program, "_assert_failures"):
+        #         program._assert_failures += dspy.settings.get("assert_failures")
+        #     if hasattr(program, "_suggest_failures"):
+        #         program._suggest_failures += dspy.settings.get("suggest_failures")
+
+        #     results.append((prediction, score))
 
         assert len(devset) == len(results)
 
