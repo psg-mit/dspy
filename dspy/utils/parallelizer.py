@@ -43,8 +43,9 @@ class ParallelExecutor:
 
     def execute(self, function, data):
         tqdm.tqdm._instances.clear()
-        wrapped = self._wrap_function(function)
-        return self._execute_parallel(wrapped, data)
+        with tqdm.logging.redirect_stderr():
+            wrapped = self._wrap_function(function)
+            return self._execute_parallel(wrapped, data)
 
     def _wrap_function(self, user_function):
         def safe_func(item):
