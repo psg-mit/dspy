@@ -154,6 +154,7 @@ class Evaluate:
             max_errors=self.max_errors,
             provide_traceback=self.provide_traceback,
             compare_results=True,
+            timeout=300,
         )
 
         def process_item(example):
