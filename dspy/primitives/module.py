@@ -131,7 +131,7 @@ class BaseModule:
                 setattr(new_instance, attr, value.deepcopy())
             else:
                 if attr == "context":
-                    new_instance.context = new_instance.context.__class__(new_instance, new_instance.temp_var_init)
+                    new_instance.context = self.context.__class__(new_instance, new_instance.temp_var_init)
                 elif attr == "tools":
                     new_instance.tools = {
                         "raise": (
