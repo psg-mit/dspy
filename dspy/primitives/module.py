@@ -125,112 +125,114 @@ class BaseModule:
 
         # Create an empty instance.
         new_instance = self.__class__.__new__(self.__class__)
-        new_instance.context = self.context.__class__(new_instance, new_instance.temp_var_init)
-        new_instance.tools = {
-            "raise": (
-                new_instance.context.raise_error,
-                self.tools["raise"][1],
-            ),
-            "done": (
-                lambda: None,
-                self.tools["done"][1],
-            ),
-            "lookup": (
-                new_instance.lookup_wrapper,
-                self.tools["lookup"][1],
-            ),
-            "assign": (
-                new_instance.assign_wrapper,
-                self.tools["assign"][1],
-            ),
-            "assign_global": (
-                new_instance.global_assign_wrapper,
-                self.tools["assign_global"][1],
-            ),
-            "delete": (
-                new_instance.context.delete,
-                self.tools["delete"][1],
-            ),
-            "alloc_int": (
-                new_instance.context.store,
-                self.tools["alloc_int"][1],
-            ),
-            "alloc_number": (
-                new_instance.context.store,
-                self.tools["alloc_number"][1],
-            ),
-            "alloc_string": (
-                new_instance.context.store,
-                self.tools["alloc_string"][1],
-            ),
-            "alloc_boolean": (
-                new_instance.context.store,
-                self.tools["alloc_boolean"][1],
-            ),
-            "alloc_null": (
-                new_instance.context.store,
-                self.tools["alloc_null"][1],
-            ),
-            "deref": (
-                new_instance.context.deref,
-                self.tools["deref"][1],
-            ),
-            "alloc_obj": (
-                new_instance.context.create_obj,
-                self.tools["alloc_obj"][1],
-            ),
-            "listattr": (
-                new_instance.context.listattr,
-                self.tools["listattr"][1],
-            ),
-            "getattr": (
-                new_instance.context.getattr,
-                self.tools["getattr"][1],
-            ),
-            "setattr": (
-                new_instance.context.setattr,
-                self.tools["setattr"][1],
-            ),
-            "delattr": (
-                new_instance.context.delattr,
-                self.tools["delattr"][1],
-            ),
-            "alloc_func": (
-                new_instance.context.create_func,
-                self.tools["alloc_func"][1],
-            ),
-            "signature": (
-                new_instance.context.signature,
-                self.tools["signature"][1],
-            ),
-            "call": (
-                new_instance.context.call,
-                self.tools["call"][1],
-            ),
-            "import": (
-                new_instance.import_wrapper,
-                self.tools["import"][1],
-            ),
-            "alloc_class": (
-                new_instance.context.alloc_class,
-                self.tools["alloc_class"][1],
-            ),
-            "break": (
-                lambda: None,
-                self.tools["break"][1],
-            ),
-            "return": (
-                lambda: None,
-                self.tools["return"][1],
-            ),
-        }
+        new_instance.context = self.context.__class__(new_instance, self.temp_var_init)
+
         # Set attribuetes of the copied instance.
         for attr, value in self.__dict__.items():
             if isinstance(value, BaseModule):
                 setattr(new_instance, attr, value.deepcopy())
             else:
-                if attr == "context" or attr == "tools":
+                if attr == "context":
                     continue
+                elif attr == "tools":
+                    new_instance.tools = {
+                        "raise": (
+                            new_instance.context.raise_error,
+                            self.tools["raise"][1],
+                        ),
+                        "done": (
+                            lambda: None,
+                            self.tools["done"][1],
+                        ),
+                        "lookup": (
+                            new_instance.lookup_wrapper,
+                            self.tools["lookup"][1],
+                        ),
+                        "assign": (
+                            new_instance.assign_wrapper,
+                            self.tools["assign"][1],
+                        ),
+                        "assign_global": (
+                            new_instance.global_assign_wrapper,
+                            self.tools["assign_global"][1],
+                        ),
+                        "delete": (
+                            new_instance.context.delete,
+                            self.tools["delete"][1],
+                        ),
+                        "alloc_int": (
+                            new_instance.context.store,
+                            self.tools["alloc_int"][1],
+                        ),
+                        "alloc_number": (
+                            new_instance.context.store,
+                            self.tools["alloc_number"][1],
+                        ),
+                        "alloc_string": (
+                            new_instance.context.store,
+                            self.tools["alloc_string"][1],
+                        ),
+                        "alloc_boolean": (
+                            new_instance.context.store,
+                            self.tools["alloc_boolean"][1],
+                        ),
+                        "alloc_null": (
+                            new_instance.context.store,
+                            self.tools["alloc_null"][1],
+                        ),
+                        "deref": (
+                            new_instance.context.deref,
+                            self.tools["deref"][1],
+                        ),
+                        "alloc_obj": (
+                            new_instance.context.create_obj,
+                            self.tools["alloc_obj"][1],
+                        ),
+                        "listattr": (
+                            new_instance.context.listattr,
+                            self.tools["listattr"][1],
+                        ),
+                        "getattr": (
+                            new_instance.context.getattr,
+                            self.tools["getattr"][1],
+                        ),
+                        "setattr": (
+                            new_instance.context.setattr,
+                            self.tools["setattr"][1],
+                        ),
+                        "delattr": (
+                            new_instance.context.delattr,
+                            self.tools["delattr"][1],
+                        ),
+                        "alloc_func": (
+                            new_instance.context.create_func,
+                            self.tools["alloc_func"][1],
+                        ),
+                        "signature": (
+                            new_instance.context.signature,
+                            self.tools["signature"][1],
+                        ),
+                        "call": (
+                            new_instance.context.call,
+                            self.tools["call"][1],
+                        ),
+                        "import": (
+                            new_instance.import_wrapper,
+                            self.tools["import"][1],
+                        ),
+                        "alloc_class": (
+                            new_instance.context.alloc_class,
+                            self.tools["alloc_class"][1],
+                        ),
+                        "break": (
+                            lambda: None,
+                            self.tools["break"][1],
+                        ),
+                        "return": (
+                            lambda: None,
+                            self.tools["return"][1],
+                        ),
+                    }
                 else:
                     try:
                         # Try to deep copy the attribute
