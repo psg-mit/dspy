@@ -53,6 +53,7 @@ def append_a_demo(demo_input_field_maxlen):
         predictor2name, name2predictor = kwargs["predictor2name"], kwargs["name2predictor"]
 
         trace = bucket[0]["trace"]
+        logger.info(f"{len(trace)} traces found.")
         example = bucket[0]["example"]
         name2demo = {}
 
