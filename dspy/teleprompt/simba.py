@@ -284,7 +284,7 @@ class SIMBA(Teleprompter):
                 end = (idx_cand + 1) * self.bsize
                 sys_scores = [outputs[i]["score"] for i in range(start, end)]
                 register_new_program(cand_sys, sys_scores)
-            
+
         M = len(winning_programs) - 1
         N = self.num_candidates + 1
         if M < 1:
@@ -307,10 +307,10 @@ class SIMBA(Teleprompter):
             avg_score = sum(sys_scores) / len(sys_scores) if sys_scores else 0.0
             scores.append(avg_score)
             if idx_prog != 0:
-                trial_logs[idx_prog-1]["train_score"] = avg_score
-        
+                trial_logs[idx_prog - 1]["train_score"] = avg_score
+
         best_idx = scores.index(max(scores)) if scores else 0
-        best_program = candidate_programs[best_idx]
+        best_program = candidate_programs[best_idx].deepcopy()
         logger.info(
             f"Final trainset scores: {scores}, Best: {max(scores) if scores else 'N/A'} "
             f"(at index {best_idx if scores else 'N/A'})\n\n\n"
