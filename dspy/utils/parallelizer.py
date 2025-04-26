@@ -9,6 +9,7 @@ import traceback
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
 import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class ParallelExecutor:
 
     def execute(self, function, data):
         tqdm.tqdm._instances.clear()
-        with tqdm.contrib.logging.logging_redirect_tqdm():
+        with logging_redirect_tqdm():
             wrapped = self._wrap_function(function)
             return self._execute_parallel(wrapped, data)
 
