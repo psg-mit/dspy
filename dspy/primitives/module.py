@@ -130,20 +130,123 @@ class BaseModule:
             if isinstance(value, BaseModule):
                 setattr(new_instance, attr, value.deepcopy())
             else:
-                try:
-                    # Try to deep copy the attribute
-                    setattr(new_instance, attr, copy.deepcopy(value))
-                except Exception:
-                    logging.warning(
-                        f"Failed to deep copy attribute '{attr}' of {self.__class__.__name__}, "
-                        "falling back to shallow copy or reference copy."
-                    )
+                if attr == "context":
+                    new_instance.context = new_instance.__class__(new_instance, new_instance.temp_var_init)
+                elif attr == "tools":
+                    new_instance.tools = {
+                        "raise": (
+                            new_instance.context.raise_error,
+                            new_instance.tools["raise"][1],
+                        ),
+                        "done": (
+                            lambda: None,
+                            new_instance.tools["done"][1],
+                        ),
+                        "lookup": (
+                            new_instance.lookup_wrapper,
+                            new_instance.tools["lookup"][1],
+                        ),
+                        "assign": (
+                            new_instance.assign_wrapper,
+                            new_instance.tools["assign"][1],
+                        ),
+                        "assign_global": (
+                            new_instance.global_assign_wrapper,
+                            new_instance.tools["assign_global"][1],
+                        ),
+                        "delete": (
+                            new_instance.context.delete,
+                            new_instance.tools["delete"][1],
+                        ),
+                        "alloc_int": (
+                            new_instance.context.store,
+                            new_instance.tools["alloc_int"][1],
+                        ),
+                        "alloc_number": (
+                            new_instance.context.store,
+                            new_instance.tools["alloc_number"][1],
+                        ),
+                        "alloc_string": (
+                            new_instance.context.store,
+                            new_instance.tools["alloc_string"][1],
+                        ),
+                        "alloc_boolean": (
+                            new_instance.context.store,
+                            new_instance.tools["alloc_boolean"][1],
+                        ),
+                        "alloc_null": (
+                            new_instance.context.store,
+                            new_instance.tools["alloc_null"][1],
+                        ),
+                        "deref": (
+                            new_instance.context.deref,
+                            new_instance.tools["deref"][1],
+                        ),
+                        "alloc_obj": (
+                            new_instance.context.create_obj,
+                            new_instance.tools["alloc_obj"][1],
+                        ),
+                        "listattr": (
+                            new_instance.context.listattr,
+                            new_instance.tools["listattr"][1],
+                        ),
+                        "getattr": (
+                            new_instance.context.getattr,
+                            new_instance.tools["getattr"][1],
+                        ),
+                        "setattr": (
+                            new_instance.context.setattr,
+                            new_instance.tools["setattr"][1],
+                        ),
+                        "delattr": (
+                            new_instance.context.delattr,
+                            new_instance.tools["delattr"][1],
+                        ),
+                        "alloc_func": (
+                            new_instance.context.create_func,
+                            new_instance.tools["alloc_func"][1],
+                        ),
+                        "signature": (
+                            new_instance.context.signature,
+                            new_instance.tools["signature"][1],
+                        ),
+                        "call": (
+                            new_instance.context.call,
+                            new_instance.tools["call"][1],
+                        ),
+                        "import": (
+                            new_instance.import_wrapper,
+                            new_instance.tools["import"][1],
+                        ),
+                        "alloc_class": (
+                            new_instance.context.alloc_class,
+                            new_instance.tools["alloc_class"][1],
+                        ),
+                        "break": (
+                            lambda: None,
+                            new_instance.tools["break"][1],
+                        ),
+                        "return": (
+                            lambda: None,
+                            new_instance.tools["return"][1],
+                        ),
+                    }
+                else:
                     try:
-                        # Fallback to shallow copy if deep copy fails
-                        setattr(new_instance, attr, copy.copy(value))
+                        # Try to deep copy the attribute
+                        setattr(new_instance, attr, copy.deepcopy(value))
                     except Exception:
-                        # If even the shallow copy fails, we just copy over the reference.
-                        setattr(new_instance, attr, value)
+                        logging.warning(
+                            f"Failed to deep copy attribute '{attr}' of {self.__class__.__name__}, "
+                            "falling back to shallow copy or reference copy."
+                        )
+
+                        try:
+                            # Fallback to shallow copy if deep copy fails
+                            setattr(new_instance, attr, copy.copy(value))
+                        except Exception:
+                            # If even the shallow copy fails, we just copy over the reference.
+                            setattr(new_instance, attr, value)
 
         return new_instance
 
