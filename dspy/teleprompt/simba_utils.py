@@ -120,14 +120,18 @@ def append_a_rule(bucket, system, **kwargs):
             good["score"] = "N/A"
             good["prediction"] = {"N/A": "Prediction not available"}
 
+    logger.info(f"good['trace']: {good['trace']}")
     better_trajectory = [
         dict(module_name=predictor2name[id(p)], inputs=i, outputs=dict(o))
         for p, i, o in good["trace"]
     ]
+    logger.info(f"better_trajectory: {better_trajectory}")
+    logger.info(f"bad['trace']: {bad['trace']}")
     worse_trajectory = [
         dict(module_name=predictor2name[id(p)], inputs=i, outputs=dict(o))
         for p, i, o in bad["trace"]
     ]
+    logger.info(f"worse_trajectory: {worse_trajectory}")
 
     kwargs = dict(
         program_code=inspect.getsource(system.__class__),
