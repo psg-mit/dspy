@@ -28,7 +28,14 @@ def wrap_program(program: dspy.Module, metric: Callable):
                 print(e)
             # trace = dspy.settings.trace.copy()
             # NOTE: this is specifically for nightjar training
-            trace = prediction.trajectory       
+            trace = prediction.trajectory     
+            traces = []
+            for i in range(len(trace)):
+                traces.append((
+                    program.next,
+                    {"instruction": example.instruction, "trajectory": trace[:i]},
+                    {"next_fn": trace[i]["tool_call"]},
+                ))
             
 
         try:
@@ -58,27 +65,27 @@ def append_a_demo(demo_input_field_maxlen):
         name2demo = {}
 
         # NOTE: this is specifically for nightjar training
-        for i in range(len(trace)):
-            demo = dspy.Example(
-                augmented=True,
-                instruction=example.instruction,
-                trajectory=trace[:i],
-                next_fn=trace[i]["tool_call"],
-            )
-            # predictor_name = self.predictor2name[id(predictor)]
-            predictor_name = "next"
-            name2demo[predictor_name] = demo
+        # for i in range(len(trace)):
+        #     demo = dspy.Example(
+        #         augmented=True,
+        #         instruction=example.instruction,
+        #         trajectory=trace[:i],
+        #         next_fn=trace[i]["tool_call"],
+        #     )
+        #     # predictor_name = self.predictor2name[id(predictor)]
+        #     predictor_name = "next"
+        #     name2demo[predictor_name] = demo
             
-        # for step in trace:
-        #     predictor, _inputs, _outputs = step
+        for step in trace:
+            predictor, _inputs, _outputs = step
 
-        #     for k, v in _inputs.items():
-        #         if demo_input_field_maxlen and len(str(v)) > demo_input_field_maxlen:
-        #             _inputs[k] = f"{str(v)[:demo_input_field_maxlen]}\n\t\t... <TRUNCATED FOR BREVITY>"
+            for k, v in _inputs.items():
+                if demo_input_field_maxlen and len(str(v)) > demo_input_field_maxlen:
+                    _inputs[k] = f"{str(v)[:demo_input_field_maxlen]}\n\t\t... <TRUNCATED FOR BREVITY>"
 
-        #     demo = dspy.Example(augmented=True, **_inputs, **_outputs)
-        #     name = predictor2name[id(predictor)]
-        #     name2demo[name] = demo  # keep the last demo for each predictor
+            demo = dspy.Example(augmented=True, **_inputs, **_outputs)
+            name = predictor2name[id(predictor)]
+            name2demo[name] = demo  # keep the last demo for each predictor
 
         for name, demo in name2demo.items():
             predictor = name2predictor[name]
