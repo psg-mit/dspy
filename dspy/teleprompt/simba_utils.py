@@ -46,7 +46,7 @@ def wrap_program(program: dspy.Module, metric: Callable):
         # Include the `example` in the output for subsequent usage in buckets/strategies.
         return {
             "prediction": prediction,
-            "trace": trace,
+            "trace": traces,
             "score": score,
             "example": example
         }
