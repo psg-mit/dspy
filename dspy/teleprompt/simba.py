@@ -263,7 +263,7 @@ class SIMBA(Teleprompter):
             for idx_cand, cand_sys in enumerate(system_candidates):
                 start = idx_cand * self.bsize
                 end = (idx_cand + 1) * self.bsize
-                sys_scores = [outputs[i]["score"] if outputs[i] is not None else 0 for i in range(start, end) ]
+                sys_scores = [outputs[i]["score"] if outputs[i] is not None else 0 for i in range(start, end)]
                 avg_sys_score = sum(sys_scores) / len(sys_scores)
                 candidate_scores.append(avg_sys_score)
 
@@ -282,7 +282,7 @@ class SIMBA(Teleprompter):
             for idx_cand, cand_sys in enumerate(system_candidates):
                 start = idx_cand * self.bsize
                 end = (idx_cand + 1) * self.bsize
-                sys_scores = [outputs[i]["score"] for i in range(start, end)]
+                sys_scores = [outputs[i]["score"] if outputs[i] is not None else 0 for i in range(start, end)]
                 register_new_program(cand_sys, sys_scores)
 
         M = len(winning_programs) - 1
@@ -303,7 +303,7 @@ class SIMBA(Teleprompter):
         for idx_prog, prog in enumerate(candidate_programs):
             start = idx_prog * len(trainset)
             end = (idx_prog + 1) * len(trainset)
-            sys_scores = [outputs[i]["score"] for i in range(start, end)]
+            sys_scores = [outputs[i]["score"] if outputs[i] is not None else 0 for i in range(start, end)]
             avg_score = sum(sys_scores) / len(sys_scores) if sys_scores else 0.0
             scores.append(avg_score)
             if idx_prog != 0:
