@@ -42,6 +42,7 @@ def wrap_program(program: dspy.Module, metric: Callable):
             score = metric(example, prediction)
         except Exception as e:
             print(e)
+            score = 0
 
         # Include the `example` in the output for subsequent usage in buckets/strategies.
         return {
