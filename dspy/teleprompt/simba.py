@@ -176,11 +176,11 @@ class SIMBA(Teleprompter):
             for idx, example in enumerate(batch):
                 # gather all results for this example
                 bucket = [outputs[i] for i in range(idx, len(outputs), self.bsize)]
-                bucket.sort(key=lambda x: x["score"], reverse=True)
+                bucket.sort(key=lambda x: x["score"] if x is not None else 0, reverse=True)
 
-                max_score = float(bucket[0]["score"])
-                min_score = float(bucket[-1]["score"])
-                avg_score = sum(x["score"] for x in bucket) / len(bucket)
+                max_score = float(bucket[0]["score"]) if bucket[0] is not None else 0
+                min_score = float(bucket[-1]["score"]) if bucket[-1] is not None else 0
+                avg_score = sum(x["score"] if x is not None else 0 for x in bucket) / len(bucket)
                 max_to_min_gap = max_score - min_score
                 max_to_avg_gap = max_score - avg_score
                 if max_to_avg_gap > largest_max_to_avg_gap:
@@ -192,7 +192,7 @@ class SIMBA(Teleprompter):
             buckets.sort(key=lambda x: x[1], reverse=True)
 
             # Baseline for the batch is just the average of all runs
-            all_scores_in_this_batch = [o["score"] for o in outputs]
+            all_scores_in_this_batch = [o["score"] if o is not None else 0 for o in outputs]
             baseline_score = sum(all_scores_in_this_batch) / len(all_scores_in_this_batch)
             logger.info(f"Batch {batch_idx+1}: Baseline mini-batch score: {baseline_score}\n")
 
