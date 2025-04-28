@@ -165,8 +165,12 @@ class SIMBA(Teleprompter):
             # STEP 3: Sort the training buckets by (max-to-min gap, max score, and max-to-avg gap).
             buckets = []
             largest_max_to_avg_gap = float("-inf")
-            batch_10th_percentile_score = np.percentile([float(o["score"]) for o in outputs], 10)
-            batch_90th_percentile_score = np.percentile([float(o["score"]) for o in outputs], 90)
+            batch_10th_percentile_score = np.percentile(
+                [float(o["score"]) if o is not None else 0 for o in outputs], 10
+            )
+            batch_90th_percentile_score = np.percentile(
+                [float(o["score"]) if o is not None else 0 for o in outputs], 90
+            )
 
             # We'll chunk `outputs` by example index, each chunk has length = num_candidates
             for idx, example in enumerate(batch):
